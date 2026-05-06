@@ -9,7 +9,7 @@ class NoteController extends Controller
 {
     public function index()
     {
-        $notes = Note::with(['category', 'user'])->get();
+        $notes = Note::with(['category', 'user', 'tags'])->get();
         return response()->json($notes);
     }
 
@@ -23,12 +23,17 @@ class NoteController extends Controller
         ]);
 
         $note = Note::create($validated);
-        return response()->json($note, 201);
+
+        if ($request->has('tags')) {
+            $note->tags()->sync($request->tags);
+        }
+
+        return response()->json($note->load('tags'), 201);
     }
 
     public function show($id)
     {
-        $note = Note::with(['category', 'user'])->findOrFail($id);
+        $note = Note::with(['category', 'user', 'tags'])->findOrFail($id);
         return response()->json($note);
     }
 
@@ -43,7 +48,12 @@ class NoteController extends Controller
         ]);
 
         $note->update($validated);
-        return response()->json($note);
+
+        if ($request->has('tags')) {
+            $note->tags()->sync($request->tags);
+        }
+
+        return response()->json($note->load('tags'));
     }
 
     public function destroy($id)
