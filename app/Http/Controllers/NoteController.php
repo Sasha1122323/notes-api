@@ -7,9 +7,24 @@ use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $notes = Note::with(['category', 'user', 'tags'])->get();
+        $query = Note::with(['category', 'user', 'tags']);
+
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->has('status')) {
+            $query->where('is_published', $request->status === 'published');
+        }
+
+        if ($request->has('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        $notes = $query->get();
+
         return response()->json($notes);
     }
 
